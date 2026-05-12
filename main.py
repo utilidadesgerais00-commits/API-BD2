@@ -27,6 +27,10 @@ FORBIDDEN_CODE = 403
 NOT_FOUND = 404
 SERVER_ERROR = 500
 
+@app.route("/")
+def home():
+    return jsonify({"message": "VoltExchange API online"})
+
 # -----------------------
 # REGISTER
 # -----------------------
