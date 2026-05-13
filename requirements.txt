@@ -1,6 +1,5 @@
 flask
 psycopg2-binary
-djangorestframework-jwt
-PyJWT
 bcrypt
+PyJWT
 python-dotenv
