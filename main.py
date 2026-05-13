@@ -62,7 +62,11 @@ def register():
     user = cur.fetchone()
     conn.commit()
 
-    return jsonify(dict(user)), SUCCESS_CODE
+    return jsonify({
+        "utilizadorid": user[0],
+        "nome": user[1],
+        "email": user[2]
+    }), SUCCESS_CODE
 
 
 # -----------------------
