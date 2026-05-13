@@ -31,9 +31,9 @@ SERVER_ERROR = 500
 def home():
     return jsonify({"message": "VoltExchange API online"})
 
-# -----------------------
+
 # REGISTER
-# -----------------------
+
 @app.route("/register", methods=['POST'])
 def register():
     data = request.get_json()
@@ -69,9 +69,9 @@ def register():
     }), SUCCESS_CODE
 
 
-# -----------------------
+
 # LOGIN
-# -----------------------
+
 @app.route("/login", methods=['POST'])
 def login():
     data = request.get_json()
@@ -102,9 +102,9 @@ def login():
     return jsonify({"message": "login ok", "user_id": user[0]}), SUCCESS_CODE
 
 
-# -----------------------
+
 # LEITURAS (JSONB)
-# -----------------------
+
 @app.route("/meters/readings", methods=['POST'])
 def add_reading():
     data = request.get_json()
@@ -126,9 +126,9 @@ def add_reading():
     return jsonify({"message": "reading inserted"}), SUCCESS_CODE
 
 
-# -----------------------
+
 # MARKET BUY (SP ACID)
-# -----------------------
+
 @app.route("/market/buy", methods=['POST'])
 def buy():
     data = request.get_json()
@@ -152,9 +152,9 @@ def buy():
         return jsonify({"error": str(e)}), SERVER_ERROR
 
 
-# -----------------------
+
 # MATCH ENGINE
-# -----------------------
+
 @app.route("/market/match", methods=['POST'])
 def match():
     conn = get_connection()
@@ -167,9 +167,9 @@ def match():
     return jsonify({"message": "matching executed"}), SUCCESS_CODE
 
 
-# -----------------------
+
 # ANOMALIAS JSONB
-# -----------------------
+
 @app.route("/admin/anomalies", methods=['GET'])
 def anomalies():
     conn = get_connection()
@@ -180,15 +180,14 @@ def anomalies():
         FROM Leituras
         WHERE
             (DadosAudit->>'temperatura')::numeric > 80
-            OR DadosAudit ? 'erro_codigo'
+            OR (DadosAudit->>'erro_codigo') IS NOT NULL
     """)
 
     return jsonify(cur.fetchall())
 
 
-# -----------------------
+
 # RUN SERVER
-# -----------------------
 #if __name__ == "__main__":
 #   app.run()
 
