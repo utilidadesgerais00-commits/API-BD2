@@ -1,7 +1,12 @@
+from functools import wraps
 import os
 from re import I
+import jwt
 
+from flask import jsonify, request
 import psycopg2
+
+UNAUTHORIZED_CODE = 401
 
 
 def get_connection():
@@ -11,6 +16,7 @@ def get_connection():
         user=os.getenv("DB_USER", "a2021153931"),
         password=os.getenv("DB_PASSWORD")
     )
+
 
 def user_exists(user):
     count = 0
@@ -41,4 +47,25 @@ def login(nome, passwordhash):
     except (Exception, psycopg2.Error) as error:
         print("Error while connecting to PostgreSQL", error)
     return user
+
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.headers.get('Authorization')
+
+        if not token:
+            return jsonify({"error": "token em falta"}), UNAUTHORIZED_CODE
+
+        try:
+            token = token.replace("Bearer ", "")
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            current_user_id = data["user_id"]
+        except jwt.ExpiredSignatureError:
+            return jsonify({"error": "token expirado"}), UNAUTHORIZED_CODE
+        except jwt.InvalidTokenError:
+            return jsonify({"error": "token inválido"}), UNAUTHORIZED_CODE
+
+        return f(current_user_id, *args, **kwargs)
+    return decorated
 

@@ -9,7 +9,7 @@ import psycopg2
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 
-from db import get_connection
+from db import get_connection, token_required
 
 load_dotenv('.env.local')
 
@@ -99,8 +99,17 @@ def login():
     ):
         return jsonify({"error": "invalid password"}), UNAUTHORIZED_CODE
 
-    return jsonify({"message": "login ok", "user_id": user[0]}), SUCCESS_CODE
 
+    token = jwt.encode(
+        {
+         "user_id": user[0],
+         "exp": datetime.utcnow() + timedelta(hours=24)
+        },
+        app.config['SECRET_KEY'],
+        algorithm="HS256"
+    )
+
+    return jsonify({"message": "login ok", "token": token}), SUCCESS_CODE   
 
 
 # LEITURAS (JSONB)
@@ -130,7 +139,8 @@ def add_reading():
 # MARKET BUY (SP ACID)
 
 @app.route("/market/buy", methods=['POST'])
-def buy():
+@token_required
+def buy(current_user_id):
     data = request.get_json()
 
     try:
@@ -141,7 +151,7 @@ def buy():
             CALL sp_ExecutarCompraDireta(%s, %s)
         """, (
             data["oferta_id"],
-            data["comprador_id"]
+            current_user_id  # vem do token, não do body
         ))
 
         conn.commit()
@@ -150,7 +160,6 @@ def buy():
         return jsonify({"error": str(e)}), BAD_REQUEST_CODE
     except (Exception, psycopg2.Error) as e:
         return jsonify({"error": str(e)}), SERVER_ERROR
-
 
 
 # MATCH ENGINE
