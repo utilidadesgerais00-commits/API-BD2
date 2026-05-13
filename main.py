@@ -185,14 +185,24 @@ def anomalies():
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT *
+        SELECT ContadorID, DataHora, KWh_Leitura, DadosAudit
         FROM Leituras
-        WHERE
+        WHERE 
             (DadosAudit->>'temperatura')::numeric > 80
             OR (DadosAudit->>'erro_codigo') IS NOT NULL
     """)
+    
+    rows = cur.fetchall()
+    result = []
+    for r in rows:
+        result.append({
+            "contador_id": r[0],
+            "data_hora": r[1].isoformat() if r[1] else None,
+            "kwh": float(r[2]),
+            "dados_audit": r[3]
+        })
 
-    return jsonify(cur.fetchall())
+    return jsonify(result), OK_CODE
 
 
 

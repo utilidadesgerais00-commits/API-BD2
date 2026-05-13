@@ -58,13 +58,20 @@ def token_required(f):
             return jsonify({"error": "token em falta"}), UNAUTHORIZED_CODE
 
         try:
-            token = token.replace("Bearer ", "")
-            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            
+            if token.startswith("Bearer "):
+                token = token.split(" ")[1]
+            
+           
+            secret = os.getenv('SECRET_KEY', 'mysecretkey')
+            
+            data = jwt.decode(token, secret, algorithms=["HS256"])
             current_user_id = data["user_id"]
         except jwt.ExpiredSignatureError:
             return jsonify({"error": "token expirado"}), UNAUTHORIZED_CODE
-        except jwt.InvalidTokenError:
-            return jsonify({"error": "token inválido"}), UNAUTHORIZED_CODE
+        except Exception as e:
+           
+            return jsonify({"error": "token inválido", "details": str(e)}), UNAUTHORIZED_CODE
 
         return f(current_user_id, *args, **kwargs)
     return decorated
